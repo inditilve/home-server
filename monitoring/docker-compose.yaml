@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - grafana_data:/var/lib/grafana
+      - grafana:/var/lib/grafana
     restart: unless-stopped
 
   prometheus:
@@ -18,7 +18,7 @@ services:
     extra_hosts:
       - "indika-media:host-gateway"
     volumes:
-      - prom_config:/etc/prometheus
+      - prom:/etc/prometheus
       - prom_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
@@ -33,6 +33,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  grafana_data:
-  prom_config:
+  grafana:
+  prom:
   prom_data:

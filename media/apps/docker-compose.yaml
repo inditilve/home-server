@@ -1,0 +1,36 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
+    ports:
+      - 32400:32400
+    volumes:
+      - plex:/config
+      - ${MEDIA}/movies:/movies
+      - ${MEDIA}/tv:/tv
+
+    devices:
+      - "/dev/dri:/dev/dri"
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - 13378:80
+    volumes:
+      - ${MEDIA}/audiobooks:/audiobooks
+      - abs:/config
+      - abs_metadata:/metadata
+    environment:
+      - TZ=${TZ}
+volumes:
+  plex:
+  abs:
+  abs_metadata:
