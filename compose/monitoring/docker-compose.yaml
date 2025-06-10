@@ -14,7 +14,9 @@ services:
     image: prom/prometheus
     container_name: prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - /bin/sh
+      - -c
+      - "envsubst < /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml && exec prometheus --config.file=/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
     extra_hosts:
@@ -22,7 +24,7 @@ services:
     volumes:
       - prom_config:/etc/prometheus
       - prom_data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml.template:/etc/prometheus/prometheus.yml.template
     restart: unless-stopped
 
   watchtower:
