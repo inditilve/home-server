@@ -20,4 +20,4 @@ scrape_configs:
 - job_name: node
   static_configs:
   - targets:
-    - ${HOSTNAME}:9100
+    - indika-media:9100

@@ -11,16 +11,16 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
     extra_hosts:
-      - "${HOSTNAME}:host-gateway"
+      - "indika-media:host-gateway"
     volumes:
       - prom_config:/etc/prometheus
       - prom_data:/prometheus
-      - ./prometheus/entrypoint.sh:/etc/prometheus/entrypoint.sh
-      - ./prometheus/prometheus.yml.template:/etc/prometheus/prometheus.yml.template
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
 
   watchtower:
