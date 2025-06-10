@@ -14,7 +14,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - overseerr_config:/config
+      - overseerr:/config
     ports:
       - 5055:5055
     restart: unless-stopped
