@@ -13,10 +13,16 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
+    extra_hosts:
+      - "${HOSTNAME}:host-gateway"
     volumes:
-      - prometheus_data:/etc/prometheus
+      - prom_config:/etc/prometheus
+      - prom_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
 
   watchtower:
@@ -30,4 +36,5 @@ services:
 
 volumes:
   grafana_data:
-  prometheus_data:
+  prom_config:
+  prom_data:
