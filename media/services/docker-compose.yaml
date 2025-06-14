@@ -28,9 +28,9 @@ services:
       - LOG_LEVEL=info
       - HEALTH_SERVER_ADDRESS=127.0.0.1:9999
       - TZ=${TZ}
-    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -74,8 +74,8 @@ services:
     restart: unless-stopped
 
   readarr:
-    container_name: readarr
     image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

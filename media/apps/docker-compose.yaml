@@ -9,26 +9,29 @@ services:
       - TZ=${TZ}
       - VERSION=docker
       - PLEX_CLAIM= #optional
-    ports:
-      - 32400:32400
     volumes:
       - plex:/config
       - /data:/data
-
     devices:
       - "/dev/dri:/dev/dri"
+    ports:
+      - 32400:32400
     restart: unless-stopped
 
   audiobookshelf:
     image: ghcr.io/advplyr/audiobookshelf:latest
-    ports:
-      - 13378:80
+    container_name: audiobookshelf
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
     volumes:
       - abs:/config
       - abs_metadata:/metadata
       - /data:/data
-    environment:
-      - TZ=${TZ}
+    ports:
+      - 13378:80
+    restart: unless-stopped
 volumes:
   plex:
   abs:

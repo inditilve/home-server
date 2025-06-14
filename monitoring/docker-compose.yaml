@@ -2,10 +2,10 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
-    ports:
-      - "3000:3000"
     volumes:
       - grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
     restart: unless-stopped
 
   prometheus:
@@ -13,14 +13,14 @@ services:
     container_name: prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-    ports:
-      - "9090:9090"
     extra_hosts:
       - "indika-media:host-gateway"
     volumes:
       - prom:/etc/prometheus
       - prom_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
     restart: unless-stopped
 
   watchtower:
