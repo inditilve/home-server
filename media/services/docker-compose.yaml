@@ -15,6 +15,7 @@ services:
       - TZ=${TZ}
     volumes:
       - overseerr:/config
+      - /data:/data
     ports:
       - 5055:5055
     restart: unless-stopped
@@ -53,8 +54,7 @@ services:
       - TZ=${TZ}
     volumes:
       - sonarr:/config
-      - ${MEDIA}/tv:/tv
-      - ${DL}/tv:/downloads
+      - /data:/data
     ports:
       - 8989:8989
     restart: unless-stopped
@@ -68,8 +68,7 @@ services:
       - TZ=${TZ}
     volumes:
       - radarr:/config
-      - ${MEDIA}/movies:/movies
-      - ${DL}/movies:/downloads
+      - /data:/data
     ports:
       - 7878:7878
     restart: unless-stopped
@@ -83,8 +82,7 @@ services:
       - TZ=${TZ}
     volumes:
       - readarr:/config
-      - ${MEDIA}/audiobooks:/books
-      - ${DL}/audiobooks:/downloads
+      - /data:/data
     ports:
       - 8787:8787
     restart: unless-stopped
@@ -102,7 +100,7 @@ services:
       - TORRENTING_PORT=6881
     volumes:
       - qbittorrent:/config
-      - ${DL}:/downloads
+      - /data:/data
     ports:
       - 8080:8080
       - 6881:6881

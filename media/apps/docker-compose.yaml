@@ -13,8 +13,7 @@ services:
       - 32400:32400
     volumes:
       - plex:/config
-      - ${MEDIA}/movies:/movies
-      - ${MEDIA}/tv:/tv
+      - /data:/data
 
     devices:
       - "/dev/dri:/dev/dri"
@@ -25,9 +24,9 @@ services:
     ports:
       - 13378:80
     volumes:
-      - ${MEDIA}/audiobooks:/audiobooks
       - abs:/config
       - abs_metadata:/metadata
+      - /data:/data
     environment:
       - TZ=${TZ}
 volumes:
