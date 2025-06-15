@@ -3,6 +3,7 @@
 This is my current home lab/server setup, mainly consisting of docker compose stacks and Ansible scripts used to automate my setup from a bare-metal Ubuntu Server install.
 
 The idea is to capture the steps required to set all of this up, with clean docker compose stacks.
+This is a work [in progress](https://github.com/inditilve/home-server/issues)!
 
 
 
@@ -11,7 +12,7 @@ The idea is to capture the steps required to set all of this up, with clean dock
 * [Media Services](https://github.com/inditilve/home-server/tree/master/media/services) - Media Monitoring Stack
 * [Monitoring](https://github.com/inditilve/home-server/tree/master/monitoring) - Grafana, Prometheus (with Node Exporter), Portainer, Watchtower
 * [Tailscale](https://github.com/inditilve/home-server/tree/master/tailscale) - Tailscale setup for secure remote access + reverse proxy via Tailscale Serve
-* [Dashboard]() - Customized Homepage dashboard for easy access to all my self-hosted services
+* [Dashboard](https://github.com/inditilve/home-server/tree/master/dashboard) - Customized Homepage dashboard for easy access to all my self-hosted services
 
 
 ## Implementation Details
