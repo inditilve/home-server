@@ -34,7 +34,7 @@ services:
       - abs_metadata:/metadata
       - /data:/data
     ports:
-      - 13378:80
+      - 127.0.0.1:13378:80
     healthcheck:
       test: curl --fail http://localhost:13378/ || exit 1
       interval: 60s

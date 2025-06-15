@@ -118,25 +118,25 @@ docker-compose up -d
 After Tailscale container is up, run these one by one or script them:
 
 ```bash
-# /dashboard
-docker exec tailscale tailscale serve --https / http://homepage:3000
+# Homepage at root
+docker exec tailscale tailscale serve --https=443 http://localhost:3001
 
-# /media/apps
-docker exec tailscale tailscale serve --https /audiobookshelf http://audiobookshelf:80
-docker exec tailscale tailscale serve --https /plex http://localhost:32400  # host mode, so use localhost
+# Media Apps
+docker exec tailscale tailscale serve --https=443 --set-path /audiobookshelf http://localhost:13378
+docker exec tailscale tailscale serve --https=443 --set-path /plex http://localhost:32400
 
-# /media/services
-docker exec tailscale tailscale serve --https /overseerr http://overseerr:5055
-docker exec tailscale tailscale serve --https /prowlarr http://prowlarr:9696
-docker exec tailscale tailscale serve --https /sonarr http://sonarr:8989
-docker exec tailscale tailscale serve --https /radarr http://radarr:7878
-docker exec tailscale tailscale serve --https /readarr http://readarr:8787
-docker exec tailscale tailscale serve --https /qbt http://qbittorrent:8080
+# Media Services
+docker exec tailscale tailscale serve --https=443 --set-path /overseerr http://localhost:5055
+docker exec tailscale tailscale serve --https=443 --set-path /prowlarr http://localhost:9696
+docker exec tailscale tailscale serve --https=443 --set-path /sonarr http://localhost:8989
+docker exec tailscale tailscale serve --https=443 --set-path /radarr http://localhost:7878
+docker exec tailscale tailscale serve --https=443 --set-path /readarr http://localhost:8787
+docker exec tailscale tailscale serve --https=443 --set-path /qbittorrent http://localhost:8080
 
-# /monitoring
-docker exec tailscale tailscale serve --https /grafana http://grafana:3000
-docker exec tailscale tailscale serve --https /prometheus http://prometheus:9090
-docker exec tailscale tailscale serve --https /portainer https://localhost:9443  # already on HTTPS
+# Monitoring & Admin
+docker exec tailscale tailscale serve --https=443 --set-path /grafana http://localhost:3000
+docker exec tailscale tailscale serve --https=443 --set-path /prometheus http://localhost:9090
+docker exec tailscale tailscale serve --https=443 --set-path /portainer https://localhost:9443
 ```
 
 Now your services are reachable at:
