@@ -43,7 +43,7 @@ docker exec tailscale tailscale serve --set-path grafana http://grafana:3000
 docker exec tailscale tailscale serve --set-path portainer https://portainer:9443
 ```
 
-### Tailscale and Docker DNS == No more Reverse Proxy!
+### Tailscale and Docker DNS (+ MagicDNS with Tailscale Serve) == No more Reverse Proxy!
 I've opted to not use a dedicated reverse proxy like NPM/Caddy, and instead in my Tailscale compose file, I've created a shared network that can be referenced in all other compose services (as opposed to using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. 
 
 The reason for this choice is that I prefer Docker DNS's simple inter-container communication with ``container-name:port`` addresses. 
