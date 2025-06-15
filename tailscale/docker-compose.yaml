@@ -1,0 +1,21 @@
+services:
+  tailscale:
+    image: tailscale/tailscale
+    container_name: tailscale
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+    volumes:
+      - ts_config:/var/lib/tailscale
+    restart: unless-stopped
+    command: tailscaled
+
+networks:
+  tailscale-net:
+    name: tailscale-net
+    driver: bridge
+volumes:
+  ts_config:
