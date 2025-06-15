@@ -13,7 +13,7 @@ services:
       - plex:/config
       - /data:/data
     devices:
-      - "/dev/dri:/dev/dri"
+      - /dev/dri:/dev/dri
     ports:
       - 32400:32400
     restart: unless-stopped
