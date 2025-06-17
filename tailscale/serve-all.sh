@@ -2,14 +2,13 @@
 set -e
 
 echo "Resetting any existing Tailscale Serve routes on port 443..."
-docker exec tailscale tailscale serve reset --https=443 || true
+docker exec tailscale tailscale serve reset
 
 echo "Mounting root homepage..."
-docker exec tailscale tailscale serve --https=443 http://localhost:3001 --bg
+docker exec tailscale tailscale serve --bg --https=443 http://localhost:3001
 
 declare -A routes=(
   ["/audiobookshelf"]="http://localhost:13378"
-  ["/plex"]="http://localhost:32400"
   ["/overseerr"]="http://localhost:5055"
   ["/prowlarr"]="http://localhost:9696"
   ["/sonarr"]="http://localhost:8989"
@@ -24,7 +23,7 @@ declare -A routes=(
 echo "Mounting services via Tailscale Serve on port 443..."
 for path in "${!routes[@]}"; do
   echo "→ Serving $path → ${routes[$path]}"
-  docker exec tailscale tailscale serve --https=443 --set-path "$path" "${routes[$path]}"
+  docker exec tailscale tailscale serve --bg --https=443 --set-path "$path" "${routes[$path]}"
 done
 
 echo "✅ All services are now live under ${TAILSCALE_URL}"
