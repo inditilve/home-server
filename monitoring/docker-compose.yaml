@@ -9,7 +9,7 @@ services:
     volumes:
       - grafana:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - 127.0.0.1:3000:3000
     healthcheck:
       test: curl --fail http://localhost:3000/api/health || exit 1
       interval: 60s
@@ -34,7 +34,7 @@ services:
       - prom_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - 127.0.0.1:9090:9090
     healthcheck:
       test: curl --fail http://localhost:9090/-/healthy || exit 1
       interval: 60s
@@ -66,7 +66,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer:/data
     ports:
-      - "9443:9443"
+      - 127.0.0.1:9000:9000
     healthcheck:
       test: curl --fail http://localhost:9000/api/system/status || exit 1
       interval: 60s

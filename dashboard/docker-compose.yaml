@@ -15,7 +15,7 @@ services:
       - homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - 3001:3000
+      - 127.0.0.1:3001:3000
     healthcheck:
       test: curl --fail http://localhost:3001/ || exit 1
       interval: 60s
