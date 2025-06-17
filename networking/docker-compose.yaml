@@ -19,8 +19,6 @@ services:
   nginx-proxy-manager:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: npm
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
