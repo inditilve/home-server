@@ -1,0 +1,52 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_USERSPACE=false
+    volumes:
+      - ts_config:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    restart: unless-stopped
+    command: tailscaled
+
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: npm
+    networks:
+      - tailscale-net
+    labels:
+      - deunhealth.restart.on.unhealthy=true
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - npm:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    healthcheck:
+      test: ["CMD", "/usr/bin/check-health"]
+      interval: 10s
+      retries: 3
+      start_period: 20s
+      timeout: 3s
+    restart: unless-stopped
+
+networks:
+  tailscale-net:
+    name: tailscale-net
+    driver: bridge
+volumes:
+  ts_config:
+  npm:
+  npm_letsencrypt:

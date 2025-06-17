@@ -2,8 +2,6 @@ services:
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
     container_name: overseerr
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -14,7 +12,7 @@ services:
       - overseerr:/config
       - /data:/data
     ports:
-      - 127.0.0.1:5055:5055
+      - 5055:5055
     healthcheck:
       test: curl --fail http://localhost:5055 || exit 1
       interval: 60s
@@ -26,8 +24,6 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -37,7 +33,7 @@ services:
     volumes:
       - prowlarr:/config
     ports:
-      - 127.0.0.1:9696:9696
+      - 9696:9696
     healthcheck:
       test: curl --fail http://localhost:9696 || exit 1
       interval: 60s
@@ -49,8 +45,6 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -61,7 +55,7 @@ services:
       - sonarr:/config
       - /data:/data
     ports:
-      - 127.0.0.1:8989:8989
+      - 8989:8989
     healthcheck:
       test: curl --fail http://localhost:8989 || exit 1  # Adjust port per app
       interval: 60s
@@ -73,8 +67,6 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
-    networks:
-      - tailscale-net
     labels: 
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -85,7 +77,7 @@ services:
       - radarr:/config
       - /data:/data
     ports:
-      - 127.0.0.1:7878:7878
+      - 7878:7878
     healthcheck:
       test: curl --fail http://localhost:7878 || exit 1
       interval: 60s
@@ -97,8 +89,6 @@ services:
   readarr:
     image: lscr.io/linuxserver/readarr:develop
     container_name: readarr
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -109,7 +99,7 @@ services:
       - readarr:/config
       - /data:/data
     ports:
-      - 127.0.0.1:8787:8787
+      - 8787:8787
     healthcheck:
       test: curl --fail http://localhost:8787 || exit 1
       interval: 60s
@@ -121,8 +111,6 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
@@ -135,7 +123,7 @@ services:
       - qbittorrent:/config
       - /data:/data
     ports:
-      - 127.0.0.1:8080:8080
+      - 8080:8080
       - 6881:6881
       - 6881:6881/udp
     healthcheck:
@@ -153,6 +141,8 @@ volumes:
   radarr:
   readarr:
   qbittorrent:
+
 networks:
-  tailscale-net:
+  default:
     external: true
+    name: tailscale-net

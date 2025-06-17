@@ -2,14 +2,12 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     volumes:
       - grafana:/var/lib/grafana
     ports:
-      - 127.0.0.1:3000:3000
+      - 3000:3000
     healthcheck:
       test: curl --fail http://localhost:3000/api/health || exit 1
       interval: 60s
@@ -21,8 +19,6 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
     command:
@@ -34,7 +30,7 @@ services:
       - prom_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - 127.0.0.1:9090:9090
+      - 9090:9090
     healthcheck:
       test: curl --fail http://localhost:9090/-/healthy || exit 1
       interval: 60s
@@ -58,15 +54,17 @@ services:
   portainer:
     image: portainer/portainer-ee:lts
     container_name: portainer
-    networks:
-      - tailscale-net
     labels:
       - deunhealth.restart.on.unhealthy=true
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer:/data
     ports:
-      - 127.0.0.1:9000:9000
+      - 9000:9000
     healthcheck:
       test: curl --fail http://localhost:9000/api/system/status || exit 1
       interval: 60s
@@ -80,6 +78,8 @@ volumes:
   prom:
   prom_data:
   portainer:
+
 networks:
-  tailscale-net:
+  default:
     external: true
+    name: tailscale-net
