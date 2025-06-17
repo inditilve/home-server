@@ -11,7 +11,7 @@ This is a work [in progress](https://github.com/inditilve/home-server/issues)!
 * [Media Apps](https://github.com/inditilve/home-server/tree/master/media/apps) - Plex and Audiobookshelf
 * [Media Services](https://github.com/inditilve/home-server/tree/master/media/services) - Media Monitoring Stack
 * [Monitoring](https://github.com/inditilve/home-server/tree/master/monitoring) - Grafana, Prometheus (with Node Exporter), Portainer, Watchtower
-* [Tailscale](https://github.com/inditilve/home-server/tree/master/tailscale) - Tailscale setup for secure remote access + reverse proxy via Tailscale Serve
+* [Networking](https://github.com/inditilve/home-server/tree/master/tailscale) - Tailscale setup for secure remote access + nginx-proxy-manager for reverse proxy
 * [Dashboard](https://github.com/inditilve/home-server/tree/master/dashboard) - Customized Homepage dashboard for easy access to all my self-hosted services
 
 
@@ -43,14 +43,14 @@ docker exec tailscale tailscale serve --set-path grafana http://grafana:3000
 docker exec tailscale tailscale serve --set-path portainer https://portainer:9443
 ```
 
-### Tailscale and Docker DNS (+ MagicDNS with Tailscale Serve) == No more Reverse Proxy!
-I've opted to not use a dedicated reverse proxy like NPM/Caddy, and instead in my Tailscale compose file, I've created a shared network that can be referenced in all other compose services (as opposed to using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. 
+### Networking
+I'm using [nginx-proxy-manager](https://github.com/NginxProxyManager/nginx-proxy-manager) as my reverse proxy and in my networking compose file, I've created a shared network that can be referenced in all other compose services (as opposed to using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. 
 
 The reason for this choice is that I prefer Docker DNS's simple inter-container communication with ``container-name:port`` addresses. 
 
 If I opt for disabling Docker DNS and using Tailscale's MagicDNS instead, then I'd have to also assign static IPs to each container, and then reference those when doing inter-container communication.
 
-With that in mind, I've then used tailscale serve on each service to provide TLS at a tailscale level, and to assign readable URLs to each service, which can be accessed easily without remembering ports. These same URLs are the ones used in Homepage's config file.
+With that in mind, I've then routed everything with npm, with Homepage's URL being served at the root of my tailnet URL for convenience, and all other services as subdomains <service.tailnet-url>. These are then used on my Homepage dashboard to link everything together.
 
 ### Service configuration
 Note that I haven't listed out how to configure each and every service I'm using, most of it can be found in the respective service's docs. Just listing the gotchas for now -
