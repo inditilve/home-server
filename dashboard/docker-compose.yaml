@@ -5,7 +5,7 @@ services:
     labels:
       - deunhealth.restart.on.unhealthy=true
     environment:
-      - HOMEPAGE_ALLOWED_HOSTS=localhost:3001,${HOSTNAME}:3001
+      - HOMEPAGE_ALLOWED_HOSTS=localhost:3001,${HOSTNAME}:3001,${TAILSCALE_URL}
       - TZ=${TZ}
       - PUID=${PUID}
       - PGID=${PGID}
