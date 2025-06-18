@@ -1,1 +1,3 @@
 networking/.env
+dashboard/homepage/logs
+dashboard/homepage/kubernetes.yaml

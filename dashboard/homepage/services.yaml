@@ -1,0 +1,42 @@
+services:
+  # 🟢 Media Services
+  - title: Plex
+    icon: plex
+    url: https://app.plex.tv/
+  - title: Audiobookshelf
+    icon: audiobookshelf
+    url: http://indika-media:13378
+  - title: Readarr
+    icon: readarr
+    url: http://indika-media:8787
+  - title: Radarr
+    icon: radarr
+    url: http://indika-media:7878
+  - title: Sonarr
+    icon: sonarr
+    url: http://indika-media:8989
+  - title: Prowlarr
+    icon: prowlarr
+    url: http://indika-media:9696
+
+  # 📊 Monitoring & Admin
+  - title: Grafana
+    icon: grafana
+    url: http://indika-media:3000
+  - title: Prometheus
+    icon: prometheus
+    url: http://indika-media:9090
+  - title: Portainer
+    icon: portainer
+    url: http://indika-media:9000
+
+  # 🌐 Networking & Torrenting
+  - title: qBittorrent
+    icon: qbittorrent
+    url: http://indika-media:8080
+  - title: Tailscale Admin
+    icon: tailscale
+    url: https://login.tailscale.com/admin/machines
+  - title: ASUS Router
+    icon: router
+    url: https://192.168.50.1:8443/Main_Login.asp
