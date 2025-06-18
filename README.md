@@ -44,13 +44,10 @@ docker exec tailscale tailscale serve --set-path portainer https://portainer:944
 ```
 
 ### Networking
-I'm using [nginx-proxy-manager](https://github.com/NginxProxyManager/nginx-proxy-manager) as my reverse proxy and in my networking compose file, I've created a shared network that can be referenced in all other compose services (as opposed to using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. 
+I'm using tailscale and a docker network ``tailscale-net`` to hook up all the services via tailscale and have them communicate with each other via Docker DNS. The reason for this choice is that I prefer Docker DNS's simple inter-container communication with ``container-name:port`` addresses. 
 
-The reason for this choice is that I prefer Docker DNS's simple inter-container communication with ``container-name:port`` addresses. 
+**Note**: This is in contrast with using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. If I opt for disabling Docker DNS and using Tailscale's MagicDNS instead, then I'd have to also assign static IPs to each container, and then reference those when doing inter-container communication.
 
-If I opt for disabling Docker DNS and using Tailscale's MagicDNS instead, then I'd have to also assign static IPs to each container, and then reference those when doing inter-container communication.
-
-With that in mind, I've then routed everything with npm, with Homepage's URL being served at the root of my tailnet URL for convenience, and all other services as subdomains <service.tailnet-url>. These are then used on my Homepage dashboard to link everything together.
 
 ### Service configuration
 Note that I haven't listed out how to configure each and every service I'm using, most of it can be found in the respective service's docs. Just listing the gotchas for now -
