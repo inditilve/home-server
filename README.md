@@ -56,15 +56,15 @@ Note that I haven't listed out how to configure each and every service I'm using
 
 
 ## Hardware Specs
-- **OS \-** Ubuntu 24.04.2 LTS
-- **CPU \-** Intel i5-4690K
-- **Motherboard \-** ASUS Z97-Pro WiFi AC (6 SATA ports; currently using 3)
+- **OS \-** Ubuntu 24.04.3 LTS
+- **CPU \-** Intel i5-14600K
+- **Motherboard \-** MSI B760M Gaming Plus Wifi (4 SATA ports; currently using 3)
 - **GPU \-** GTX970 (to be used for hardware-accelerated Plex transcoding)
-- **RAM \-** 32GB DDR3
-- **Cooling \-** Corsair H100i AIO attached on top with 2 fans on the radiator as exhaust
+- **RAM \-** 32GB DDR5
+- **Cooling \-** Thermalright Peerless Assassin dual-fan air cooler
 - **Boot Drive \-** 256GB SATA SSD
 - **Storage Drives \-** 1TB SATA SSD and 2TB SATA SSD
 - **PSU \-** 750W
 - **Case \-** NZXT H440i
-- **Fans \-** 3 Front intake, 1 rear exhaust
+- **Fans \-** 2 Front intake, 1 rear exhaust
 
