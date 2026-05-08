@@ -19,6 +19,8 @@ services:
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
+    labels:
+      - deunhealth.restart.on.unhealthy=true
     cap_add:
       - NET_ADMIN
     environment:
