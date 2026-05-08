@@ -51,20 +51,20 @@ I'm using tailscale and a docker network ``tailscale-net`` to hook up all the se
 
 ### Service configuration
 Note that I haven't listed out how to configure each and every service I'm using, most of it can be found in the respective service's docs. Just listing the gotchas for now -
-- Ensure that docker volume mount paths are consistent across services. Eg, ``/data/media/tv`` contains TV shows on my server, and different services have different expected paths that the above path needs to be mounted to
-- My Grafana Node Exporter dashboard is a heavily pared down version of [this famous one](https://grafana.com/grafana/dashboards/1860-node-exporter-full/), import this after configuring prometheus as a data source within Grafana. My main use case is to monitor my zfs datasets, memory usage, cpu temperature (hence node exporter), cpu usage, network usage, etc
+- Ensure that docker volume mount paths are consistent across services. Eg, ``/data/media/tv`` contains TV shows on my server, and different services have different expected paths that the above path gets mounted to
+- My Grafana Node Exporter dashboard is a heavily pared down version of [this famous one](https://grafana.com/grafana/dashboards/1860-node-exporter-full/), import this after configuring prometheus
 
 
 ## Hardware Specs
-- **OS \-** Ubuntu 24.04.3 LTS
-- **CPU \-** Intel i5-14600K
-- **Motherboard \-** MSI B760M Gaming Plus Wifi (4 SATA ports; currently using 3)
-- **GPU \-** GTX970 (to be used for hardware-accelerated Plex transcoding)
-- **RAM \-** 32GB DDR5
-- **Cooling \-** Thermalright Peerless Assassin dual-fan air cooler
-- **Boot Drive \-** 256GB SATA SSD
-- **Storage Drives \-** 1TB SATA SSD and 2TB SATA SSD
-- **PSU \-** 750W
-- **Case \-** NZXT H440i
-- **Fans \-** 2 Front intake, 1 rear exhaust
+- **OS -** Ubuntu 24.04.3 LTS
+- **CPU -** Intel i5-14600K
+- **Motherboard -** MSI B760M Gaming Plus Wifi (4 SATA ports; currently using 3)
+- **GPU -** GTX970 (to be used for hardware-accelerated Plex transcoding)
+- **RAM -** 32GB DDR5
+- **Cooling -** Thermalright Peerless Assassin dual-fan air cooler
+- **Boot Drive -** 256GB SATA SSD
+- **Storage Drives -** 1TB SATA SSD and 2TB SATA SSD
+- **PSU -** 750W
+- **Case -** NZXT H440i
+- **Fans -** 2 Front intake, 1 rear exhaust
 
