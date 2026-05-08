@@ -16,5 +16,61 @@ services:
     restart: unless-stopped
     command: tailscaled
 
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - OPENVPN_USER=${NORDVPN_USER}
+      - OPENVPN_PASSWORD=${NORDVPN_PASSWORD}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-United States}
+      - VPN_TYPE=${VPN_TYPE:-openvpn}
+      - TZ=${TZ}
+    volumes:
+      - gluetun:/gluetun
+    ports:
+      - 8080:8080      # qBitTorrent WebUI
+      - 6881:6881      # qBitTorrent torrenting
+      - 6881:6881/udp
+    healthcheck:
+      test: curl --fail http://localhost:8080 || exit 1
+      interval: 60s
+      retries: 3
+      start_period: 20s
+      timeout: 10s
+    restart: unless-stopped
+    networks:
+      - default
+      - tailscale-net
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    labels:
+      - deunhealth.restart.on.unhealthy=true
+    depends_on:
+      - gluetun
+    network_mode: service:gluetun
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - qbittorrent:/config
+      - /data:/data
+    restart: unless-stopped
+
 volumes:
   ts_config:
+  gluetun:
+  qbittorrent:
+
+networks:
+  default:
+    driver: bridge
+  tailscale-net:
+    external: true
