@@ -35,7 +35,7 @@ services:
       - 6881:6881      # qBitTorrent torrenting
       - 6881:6881/udp
     healthcheck:
-      test: curl --fail http://localhost:8080 || exit 1
+      test: /gluetun-entrypoint healthcheck
       interval: 60s
       retries: 3
       start_period: 20s
@@ -51,7 +51,8 @@ services:
     labels:
       - deunhealth.restart.on.unhealthy=true
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy
     network_mode: service:gluetun
     environment:
       - PUID=${PUID}
