@@ -8,9 +8,9 @@ This is a work [in progress](https://github.com/inditilve/home-server/issues)!
 
 
 ## Service Stacks
-* [Media Apps](https://github.com/inditilve/home-server/tree/master/media/apps) - Plex
+* [Media Apps](https://github.com/inditilve/home-server/tree/master/media/apps) - Plex and Audiobookshelf
 * [Media Services](https://github.com/inditilve/home-server/tree/master/media/services) - Media Monitoring Stack
-* [Monitoring](https://github.com/inditilve/home-server/tree/master/monitoring) - Grafana, Prometheus (with Node Exporter), Portainer
+* [Monitoring](https://github.com/inditilve/home-server/tree/master/monitoring) - Grafana, Prometheus (with Node Exporter), Portainer, Watchtower
 * [Networking](https://github.com/inditilve/home-server/tree/master/tailscale) - Tailscale setup for secure remote access + nginx-proxy-manager for reverse proxy
 * [Dashboard](https://github.com/inditilve/home-server/tree/master/dashboard) - Customized Homepage dashboard for easy access to all my self-hosted services
 
