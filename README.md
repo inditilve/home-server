@@ -112,7 +112,7 @@ docker exec qbittorrent curl -s https://ipinfo.io/json
 
 
 Then remaining stacks (any order)
-```
+```bash
 cd ../media/apps && docker compose up -d
 cd ../media/services && docker compose up -d
 cd ../monitoring && docker compose up -d
@@ -149,7 +149,7 @@ docker exec tailscale tailscale serve --set-path /homepage http://homepage:3000
 |-----------|-------|------|---------|
 | `plex` | `lscr.io/linuxserver/plex:latest` | 32400 (host) | Media server |
 
-Plex runs in `network_mode: host` for optimal LAN streaming and hardware transcoding via `/dev/dri`. Both services mount `/data` for media content.
+Plex runs in `network_mode: host` for optimal LAN streaming and hardware transcoding via `/dev/dri`. It mount `/data` for media content.
 
 ### Media Services — `media/services/`
 
