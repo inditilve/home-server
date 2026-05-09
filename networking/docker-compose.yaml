@@ -2,7 +2,7 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
-    network_mode: "host"
+    network_mode: host
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -23,29 +23,28 @@ services:
       - deunhealth.restart.on.unhealthy=true
     cap_add:
       - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
     environment:
       - VPN_SERVICE_PROVIDER=nordvpn
-      - OPENVPN_USER=${NORDVPN_USER}
-      - OPENVPN_PASSWORD=${NORDVPN_PASSWORD}
-      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-United States}
       - VPN_TYPE=${VPN_TYPE:-openvpn}
+      - OPENVPN_USER=${NORDVPN_SERVICE_USER}
+      - OPENVPN_PASSWORD=${NORDVPN_SERVICE_PASS}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Japan}
       - TZ=${TZ}
     volumes:
       - gluetun:/gluetun
     ports:
-      - 8080:8080      # qBitTorrent WebUI
-      - 6881:6881      # qBitTorrent torrenting
+      - 8080:8080
+      - 6881:6881/tcp
       - 6881:6881/udp
     healthcheck:
       test: /gluetun-entrypoint healthcheck
-      interval: 60s
-      retries: 3
-      start_period: 20s
+      interval: 30s
+      retries: 5
+      start_period: 30s
       timeout: 10s
     restart: unless-stopped
-    networks:
-      - default
-      - tailscale-net
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -74,6 +73,5 @@ volumes:
 
 networks:
   default:
-    driver: bridge
-  tailscale-net:
     external: true
+    name: tailscale-net
