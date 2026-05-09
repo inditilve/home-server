@@ -1,70 +1,226 @@
-# Home Server
+# Home Server (`indika-media`)
 
-This is my current home lab/server setup, mainly consisting of docker compose stacks and Ansible scripts used to automate my setup from a bare-metal Ubuntu Server install.
+My home lab setup running on `indika-media` — a dockerised media, monitoring, and networking stack on Ubuntu 24.04 LTS. All services are managed via Docker Compose, segmented into focused stacks, and connected via a shared `tailscale-net` Docker bridge network for container-to-container DNS.
 
-The idea is to capture the steps required to set all of this up, with clean docker compose stacks.
-This is a work [in progress](https://github.com/inditilve/home-server/issues)!
+> **Work in progress** — tracked via [issues](https://github.com/inditilve/home-server/issues).
 
+---
 
+## Hardware
+
+| Component | Spec |
+|-----------|------|
+| **OS** | Ubuntu 24.04.3 LTS |
+| **CPU** | Intel i5-14600K |
+| **Motherboard** | MSI B760M Gaming Plus Wifi (4 SATA ports; 3 in use) |
+| **GPU** | GTX 970 (hardware-accelerated Plex transcoding) |
+| **RAM** | 32GB DDR5 |
+| **Cooling** | Thermalright Peerless Assassin (dual-fan air cooler) |
+| **Boot Drive** | 256GB SATA SSD |
+| **Storage** | 1TB SATA SSD + 2TB SATA SSD |
+| **PSU** | 750W |
+| **Case** | NZXT H440i (2× front intake, 1× rear exhaust) |
+
+---
 
 ## Service Stacks
-* [Media Apps](https://github.com/inditilve/home-server/tree/master/media/apps) - Plex and Audiobookshelf
-* [Media Services](https://github.com/inditilve/home-server/tree/master/media/services) - Media Monitoring Stack
-* [Monitoring](https://github.com/inditilve/home-server/tree/master/monitoring) - Grafana, Prometheus (with Node Exporter), Portainer, Watchtower
-* [Networking](https://github.com/inditilve/home-server/tree/master/tailscale) - Tailscale setup for secure remote access + nginx-proxy-manager for reverse proxy
-* [Dashboard](https://github.com/inditilve/home-server/tree/master/dashboard) - Customized Homepage dashboard for easy access to all my self-hosted services
 
+| Stack | Path | Services |
+|-------|------|----------|
+| **Networking** | [`networking/`](networking/) | Tailscale, Gluetun (NordVPN), qBittorrent |
+| **Media Apps** | [`media/apps/`](media/apps/) | Plex, Audiobookshelf |
+| **Media Services** | [`media/services/`](media/services/) | Sonarr, Radarr, Prowlarr |
+| **Monitoring** | [`monitoring/`](monitoring/) | Grafana, Prometheus, Portainer, deunhealth |
+| **Dashboard** | [`dashboard/`](dashboard/) | Homepage |
 
-## Implementation Details
-### Ubuntu Post-Install Steps
-- [Install latest Docker (uninstall older one)](https://docs.docker.com/engine/install/ubuntu/)
-- Install Prometheus Node Exporter via systemctl and not docker, since it's easier to monitor the host's internals this way:
-    ``sudo apt install prometheus-node-exporter``
+---
 
-### ZFS Setup
-I've setup a pool with 2 main datasets relevant to this server configuration, and their mounts, as follows - 
+## Networking Architecture
 
-```
-storage_pool/docker -> /var/lib/docker
-storage_pool/data -> /data
-```
+All stacks share a single external Docker bridge network called `tailscale-net`. Each compose file declares it as the default network:
 
-For any config related data, I have opted for named volumes which will by default be stored in ``/var/lib/docker``, whereas all media content lives under /data, and the compose volumes are mounted accordingly.
-
-### Setup Home Server Stacks
-- Clone this repository
-- Replace ``indika-media`` with the hostname this setup will run on if required (I could not use profile/env variables for this as prometheus config does not seem to support envsubst)
-- Replace ``TS_AUTHKEY`` in tailscale/.env with your Tailscale Auth Key which can be obtained from your tailnet settings
-- Navigate to tailscale folder and bring it up first with ``docker compose up -d``
-- Similarly, navigate to the other folders and bring up the respective compose stacks
-- Then run the necessary tailscale serve commands to get TLS + clean URLs; Eg - 
-```
-docker exec tailscale tailscale serve --set-path grafana http://grafana:3000
-docker exec tailscale tailscale serve --set-path portainer https://portainer:9443
+```yaml
+networks:
+  default:
+    external: true
+    name: tailscale-net
 ```
 
-### Networking
-I'm using tailscale and a docker network ``tailscale-net`` to hook up all the services via tailscale and have them communicate with each other via Docker DNS. The reason for this choice is that I prefer Docker DNS's simple inter-container communication with ``container-name:port`` addresses. 
+This means every container automatically joins `tailscale-net` without needing a per-service `networks:` block, and containers can reach each other by name via Docker DNS (e.g. `sonarr:8989`, `gluetun:8080`).
 
-**Note**: This is in contrast with using ``network_mode:service:tailscale``) which would disable Docker DNS and force all docker services to only communicate via Tailscale. If I opt for disabling Docker DNS and using Tailscale's MagicDNS instead, then I'd have to also assign static IPs to each container, and then reference those when doing inter-container communication.
+**Tailscale** runs in `network_mode: host` and is used for secure remote admin access to services — not as a VPN tunnel for traffic. The Tailscale container exposes services to the tailnet via `tailscale serve`.
 
+**Gluetun** routes qBittorrent's outbound traffic through NordVPN (OpenVPN). qBittorrent uses `network_mode: service:gluetun`, so all torrent traffic exits via a Nord IP — peers never see the real HK IP. Gluetun's healthcheck acts as an implicit kill-switch: if the VPN tunnel drops, qBittorrent loses all network access.
 
-### Service configuration
-Note that I haven't listed out how to configure each and every service I'm using, most of it can be found in the respective service's docs. Just listing the gotchas for now -
-- Ensure that docker volume mount paths are consistent across services. Eg, ``/data/media/tv`` contains TV shows on my server, and different services have different expected paths that the above path gets mounted to
-- My Grafana Node Exporter dashboard is a heavily pared down version of [this famous one](https://grafana.com/grafana/dashboards/1860-node-exporter-full/), import this after configuring prometheus
+**Why not `network_mode: service:tailscale`?** That approach disables Docker DNS, forcing container-to-container communication via static Tailscale IPs rather than container names. The current approach keeps Docker DNS and only uses Tailscale for admin-plane access.
 
+### Create the shared network (once, before first `up`)
 
-## Hardware Specs
-- **OS -** Ubuntu 24.04.3 LTS
-- **CPU -** Intel i5-14600K
-- **Motherboard -** MSI B760M Gaming Plus Wifi (4 SATA ports; currently using 3)
-- **GPU -** GTX970 (to be used for hardware-accelerated Plex transcoding)
-- **RAM -** 32GB DDR5
-- **Cooling -** Thermalright Peerless Assassin dual-fan air cooler
-- **Boot Drive -** 256GB SATA SSD
-- **Storage Drives -** 1TB SATA SSD and 2TB SATA SSD
-- **PSU -** 750W
-- **Case -** NZXT H440i
-- **Fans -** 2 Front intake, 1 rear exhaust
+```bash
+docker network create tailscale-net
+```
 
+---
+
+## Stack Details
+
+### Networking — `networking/`
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `tailscale` | `tailscale/tailscale:latest` | host | Secure remote access via Tailscale |
+| `gluetun` | `qmcgaw/gluetun:latest` | 8080, 6881 | NordVPN tunnel for qBittorrent |
+| `qbittorrent` | `lscr.io/linuxserver/qbittorrent:latest` | via gluetun | Torrent client, VPN-routed |
+
+qBittorrent's WebUI is available on `:8080` (port published by Gluetun). All torrent traffic exits via NordVPN. Set the download client host to `gluetun` (not `qbittorrent`) in Sonarr/Radarr.
+
+**Required `.env` keys:**
+
+```env
+TS_AUTHKEY=
+NORDVPN_SERVICE_USER=   # NordVPN service credential (Account → Manual Setup), NOT login email
+NORDVPN_SERVICE_PASS=
+VPN_TYPE=openvpn
+SERVER_COUNTRIES=Japan
+TZ=
+```
+
+**To verify VPN is working:**
+
+```bash
+docker exec qbittorrent curl -s https://ipinfo.io/json
+# Should show a NordVPN IP, not your real HK IP
+```
+
+### Media Apps — `media/apps/`
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `plex` | `lscr.io/linuxserver/plex:latest` | 32400 (host) | Media server |
+| `audiobookshelf` | `ghcr.io/advplyr/audiobookshelf:latest` | 13378 | Audiobook/podcast server |
+
+Plex runs in `network_mode: host` for optimal LAN streaming and hardware transcoding via `/dev/dri`. Both services mount `/data` for media content.
+
+### Media Services — `media/services/`
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `sonarr` | `lscr.io/linuxserver/sonarr:latest` | 8989 | TV show management |
+| `radarr` | `lscr.io/linuxserver/radarr:latest` | 7878 | Movie management |
+| `prowlarr` | `lscr.io/linuxserver/prowlarr:latest` | 9696 | Indexer aggregator |
+
+Configure Sonarr/Radarr's qBittorrent download client with:
+- **Host:** `gluetun`
+- **Port:** `8080`
+
+### Monitoring — `monitoring/`
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `grafana` | `grafana/grafana` | 3000 | Metrics dashboards |
+| `prometheus` | `prom/prometheus` | 9090 | Metrics collection |
+| `deunhealth` | `qmcgaw/deunhealth` | — | Auto-restart unhealthy containers |
+| `portainer` | `portainer/portainer-ee:lts` | 9000 | Docker management UI |
+
+Prometheus Node Exporter is installed **on the host** (not in Docker) for accurate host-level metrics:
+
+```bash
+sudo apt install prometheus-node-exporter
+```
+
+The Grafana dashboard is a pared-down version of [Node Exporter Full](https://grafana.com/grafana/dashboards/1860-node-exporter-full/) — import it after configuring Prometheus.
+
+**deunhealth** watches for containers labelled `deunhealth.restart.on.unhealthy=true` and restarts them when they go unhealthy. It runs with `network_mode: none` (only needs the Docker socket).
+
+### Dashboard — `dashboard/`
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `homepage` | `ghcr.io/gethomepage/homepage:latest` | 3001 | Service dashboard |
+
+Homepage config lives in a named volume. It mounts the Docker socket to auto-discover running containers.
+
+---
+
+## Storage Layout (ZFS)
+
+```
+storage_pool/docker  →  /var/lib/docker    (named Docker volumes)
+storage_pool/data    →  /data              (all media content)
+```
+
+Named volumes store service config under `/var/lib/docker`. All media (TV, movies, music, photos, books) lives under `/data`, mounted consistently across Plex, Sonarr, Radarr, qBittorrent, and Audiobookshelf.
+
+---
+
+## Setup Guide
+
+### 1. Post-Install
+
+```bash
+# Install Docker
+# https://docs.docker.com/engine/install/ubuntu/
+
+# Install Node Exporter on host
+sudo apt install prometheus-node-exporter
+```
+
+### 2. Create shared network
+
+```bash
+docker network create tailscale-net
+```
+
+### 3. Configure `.env` files
+
+Each stack folder has a `.env` file. Populate at minimum:
+
+```env
+PUID=1000
+PGID=1000
+TZ=Asia/Hong_Kong
+HOSTNAME=indika-media
+```
+
+Add stack-specific keys (Tailscale auth key, NordVPN service credentials) to the relevant `.env`.
+
+### 4. Bring up stacks (order matters)
+
+```bash
+# Networking first — Tailscale + Gluetun + qBittorrent
+cd networking && docker compose up -d
+
+# Then remaining stacks (any order)
+cd ../media/apps && docker compose up -d
+cd ../media/services && docker compose up -d
+cd ../monitoring && docker compose up -d
+cd ../dashboard && docker compose up -d
+```
+
+### 5. Tailscale serve (for TLS + clean URLs on tailnet)
+
+```bash
+docker exec tailscale tailscale serve --set-path /grafana http://grafana:3000
+docker exec tailscale tailscale serve --set-path /portainer https://portainer:9443
+docker exec tailscale tailscale serve --set-path /sonarr http://sonarr:8989
+docker exec tailscale tailscale serve --set-path /radarr http://radarr:7878
+docker exec tailscale tailscale serve --set-path /prowlarr http://prowlarr:9696
+docker exec tailscale tailscale serve --set-path /qbt http://gluetun:8080
+docker exec tailscale tailscale serve --set-path /homepage http://homepage:3000
+```
+
+---
+
+## Volume Mount Conventions
+
+Consistent `/data` layout used across all services:
+
+```
+/data/media/tv        → TV shows (Sonarr, Plex)
+/data/media/movies    → Movies (Radarr, Plex)
+/data/media/music     → Music (Plex)
+/data/books           → Audiobooks (Audiobookshelf)
+/data/downloads       → qBittorrent download staging
+```
+
+Ensure all services that need to cross-reference files (e.g. Sonarr hardlinking into Plex's library) mount the same `/data` root.
