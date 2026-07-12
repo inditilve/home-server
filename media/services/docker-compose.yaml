@@ -4,6 +4,7 @@ services:
     container_name: prowlarr
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -25,6 +26,7 @@ services:
     container_name: sonarr
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -45,8 +47,9 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
-    labels: 
+    labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

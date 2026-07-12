@@ -4,6 +4,7 @@ services:
     container_name: homepage
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=localhost:3001,${HOSTNAME}:3001,${TAILSCALE_URL}
       - TZ=${TZ}
