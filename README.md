@@ -6,6 +6,14 @@ My current home lab setup - a dockerised media, monitoring, and networking stack
 
 ---
 
+## Operations
+
+- Manual deploy: [Deploy Home Server workflow](https://github.com/inditilve/home-server/actions/workflows/deploy.yml)
+- Server working repo: `~/workspace/home-server`
+- Runner host: `indika-media`
+
+---
+
 ## Hardware
 
 | Component | Spec |

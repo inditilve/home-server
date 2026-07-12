@@ -1,4 +1,4 @@
-name: Deploy Services
+name: Deploy Home Server
 
 on:
   workflow_dispatch:
@@ -11,9 +11,10 @@ jobs:
       - name: Pull latest changes
         run: |
           cd ~/workspace/home-server
-          git pull origin master
+          git pull --ff-only origin master
 
       - name: Detect changed service folders and deploy
+        id: detect-and-deploy
         run: |
           cd ~/workspace/home-server
 
@@ -59,9 +60,22 @@ jobs:
 
           if [ ${#DEPLOYED[@]} -eq 0 ]; then
             echo "No service stacks affected by this commit."
+            echo "deployed_stacks=none" >> $GITHUB_OUTPUT
+          else
+            DEPLOYED_STR=$(IFS=', '; echo "${DEPLOYED[*]}")
+            echo "deployed_stacks=${DEPLOYED_STR}" >> $GITHUB_OUTPUT
           fi
 
       - name: Verify — list any exited containers
         run: |
           echo "=== Exited containers ==="
           docker ps --filter status=exited
+
+      - name: Notify Discord
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "home-server deploy"
+          description: "Deployed stacks: ${{ steps.detect-and-deploy.outputs.deployed_stacks }}"
+          nofail: true
