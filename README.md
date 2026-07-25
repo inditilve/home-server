@@ -1,16 +1,109 @@
 # Home Server
 
-My current home lab setup - a dockerised media, monitoring, and networking stack on Ubuntu 24.04 LTS. All services are managed via Docker Compose, segmented into focused stacks, and connected via a shared `tailscale-net` Docker bridge network for container-to-container DNS.
+<a name="top"></a>
+
+My current home lab setup — a dockerised media, monitoring, and networking stack on Ubuntu 24.04 LTS. All services are managed via Docker Compose, segmented into focused stacks, and connected via a shared `tailscale-net` Docker bridge network for container-to-container DNS.
 
 > **Work in progress** — tracked via [issues](https://github.com/inditilve/home-server/issues).
 
 ---
 
+## Table of Contents
+
+- [Operations](#operations)
+  - [Self-Hosted Runner](#self-hosted-runner)
+  - [CI/CD Deploy Workflow](#cicd-deploy-workflow)
+  - [Discord Notifications for CI/CD](#discord-notifications-for-cicd)
+  - [Watchtower — Auto-Updates](#watchtower--auto-updates)
+  - [Watchtower Discord Notifications](#watchtower-discord-notifications)
+- [Hardware](#hardware)
+- [Service Stacks](#service-stacks)
+- [Networking Architecture](#networking-architecture)
+- [Setup Guide](#setup-guide)
+- [Stack Details + Configuration Nuances](#stack-details--configuration-nuances)
+- [Storage Layout](#storage-layout-zfs)
+- [Volume Mount Conventions](#volume-mount-conventions)
+
+---
+
 ## Operations
 
-- Manual deploy: [Deploy Home Server workflow](https://github.com/inditilve/home-server/actions/workflows/deploy.yml)
-- Server working repo: `~/workspace/home-server`
-- Runner host: `indika-media`
+### Self-Hosted Runner
+
+The GitHub Actions self-hosted runner runs directly on `indika-media` (Ubuntu 24.04.4 LTS). It listens for workflow jobs and executes them in-place, giving the CI/CD pipeline direct access to the Docker socket and compose files without any SSH gymnastics. The runner is registered under this repo and runs as a persistent background service.
+
+- **Server:** `indika-media`
+- **Working repo path:** `~/workspace/home-server`
+- **Runner registration:** Settings → Actions → Runners
+
+[⬆ Back to top](#top)
+
+### CI/CD Deploy Workflow
+
+The **Deploy Home Server** workflow is triggered manually via `workflow_dispatch` — it does not run on push. To trigger it, go to [Actions → Deploy Home Server](https://github.com/inditilve/home-server/actions/workflows/deploy.yml), click **Run workflow**, and select the `master` branch.
+
+What it does:
+1. Pulls the latest `master` onto `indika-media` via `git pull`
+2. Runs `docker compose up -d --remove-orphans` across all stacks
+3. Posts a success/failure notification to Discord (see below)
+
+[⬆ Back to top](#top)
+
+### Discord Notifications for CI/CD
+
+Deploy workflow outcomes are posted to the `#home-server` Discord channel via [sarisia/actions-status-discord](https://github.com/sarisia/actions-status-discord). The webhook URL is stored as the **`DISCORD_WEBHOOK_URL`** GitHub Actions secret (Settings → Secrets and variables → Actions). This secret is only used by the CI/CD workflow — it is separate from the Watchtower notification URL below.
+
+[⬆ Back to top](#top)
+
+### Watchtower — Auto-Updates
+
+Watchtower runs in `monitoring/` and polls for updated images at **5:00 AM daily** (`0 0 5 * * *`). It uses `WATCHTOWER_LABEL_ENABLE=true`, so only containers explicitly opted-in with `com.centurylinklabs.watchtower.enable=true` are auto-updated. Old images are cleaned up automatically (`WATCHTOWER_CLEANUP=true`).
+
+**Auto-updated (label applied):**
+
+| Service | Rationale |
+|---|---|
+| `sonarr` | Frequent, safe point-releases; no persistent state risk |
+| `radarr` | Same release cadence as Sonarr |
+| `prowlarr` | Indexer-only; updates are low-risk |
+| `homepage` | UI-only dashboard; stateless config in named volume |
+
+**Manual update only (no label):**
+
+| Service | Rationale |
+|---|---|
+| `plex` | Major version changes can require DB migration; update intentionally |
+| `qbittorrent` | Settings/config sensitive; verify release notes before updating |
+| `tailscale` | Infrastructure-level — unattended update risks losing remote access |
+| `gluetun` | VPN tunnel — unattended update risks kill-switch gap |
+| `immich` | Requires coordinated DB + app upgrades; must follow official migration guide |
+| `portainer` | Management plane — only update intentionally |
+| `deunhealth` | Health watchdog — update manually to avoid restart loop during update |
+| `grafana` | Dashboard config/plugin compatibility; update intentionally |
+| `prometheus` | Storage format changes possible between versions; update intentionally |
+| `watchtower` | Not self-labeled — never auto-updates itself |
+
+> **Tip:** Before trusting Watchtower to actually update anything in production, add `WATCHTOWER_MONITOR_ONLY=true` to `monitoring/.env` temporarily. It will log what it *would* update without touching anything. Remove once you're satisfied.
+
+[⬆ Back to top](#top)
+
+### Watchtower Discord Notifications
+
+Watchtower uses [shoutrrr](https://containrrr.dev/shoutrrr/) for notifications, which requires a **different URL format** than the standard Discord webhook used by CI/CD.
+
+Add the following to `monitoring/.env` (already gitignored — do **not** add to GitHub Secrets):
+
+```env
+# Watchtower notification URL — shoutrrr discord format
+# Different from the DISCORD_WEBHOOK_URL GitHub Secret used by the CI/CD deploy workflow
+WATCHTOWER_NOTIFICATION_URL=discord://TOKEN@WEBHOOK_ID
+```
+
+To get the shoutrrr-format URL from a standard Discord webhook URL (`https://discord.com/api/webhooks/WEBHOOK_ID/TOKEN`), rearrange as `discord://TOKEN@WEBHOOK_ID`.
+
+`WATCHTOWER_NOTIFICATION_REPORT=true` is already set in the compose file, so Watchtower will send a single summary report after each update run rather than one message per container.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -29,6 +122,8 @@ My current home lab setup - a dockerised media, monitoring, and networking stack
 | **PSU** | 750W |
 | **Case** | NZXT H440i (2× front intake, 1× rear exhaust) |
 
+[⬆ Back to top](#top)
+
 ---
 
 ## Service Stacks
@@ -38,8 +133,10 @@ My current home lab setup - a dockerised media, monitoring, and networking stack
 | **Networking** | [`networking/`](networking/) | Tailscale, Gluetun (NordVPN), qBittorrent |
 | **Media Apps** | [`media/apps/`](media/apps/) | Plex |
 | **Media Services** | [`media/services/`](media/services/) | Sonarr, Radarr, Prowlarr |
-| **Monitoring** | [`monitoring/`](monitoring/) | Grafana, Prometheus, Portainer, deunhealth |
+| **Monitoring** | [`monitoring/`](monitoring/) | Grafana, Prometheus, Portainer, deunhealth, Watchtower |
 | **Dashboard** | [`dashboard/`](dashboard/) | Homepage |
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -61,6 +158,8 @@ This means every container automatically joins `tailscale-net` without needing a
 **Gluetun** routes qBittorrent's outbound traffic through NordVPN (OpenVPN). qBittorrent uses `network_mode: service:gluetun`, so all torrent traffic exits via a Nord IP. Gluetun's healthcheck acts as an implicit kill-switch: if the VPN tunnel drops, qBittorrent loses all network access.
 
 **Why not `network_mode: service:tailscale`?** That approach disables Docker DNS, forcing container-to-container communication via static Tailscale IPs rather than container names. The current approach keeps Docker DNS and only uses Tailscale for admin control-plane access.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -105,6 +204,12 @@ SERVER_COUNTRIES=Japan
 TZ=
 ```
 
+For Watchtower notifications, add to `monitoring/.env`:
+
+```env
+WATCHTOWER_NOTIFICATION_URL=discord://TOKEN@WEBHOOK_ID
+```
+
 ### 4. Bring up stacks (order matters)
 
 ```bash
@@ -139,6 +244,9 @@ docker exec tailscale tailscale serve --set-path /qbt http://gluetun:8080
 docker exec tailscale tailscale serve --set-path /homepage http://homepage:3000
 ```
 
+[⬆ Back to top](#top)
+
+---
 
 ## Stack Details + Configuration Nuances
 
@@ -157,7 +265,7 @@ docker exec tailscale tailscale serve --set-path /homepage http://homepage:3000
 |-----------|-------|------|---------|
 | `plex` | `lscr.io/linuxserver/plex:latest` | 32400 (host) | Media server |
 
-Plex runs in `network_mode: host` for optimal LAN streaming and hardware transcoding via `/dev/dri`. It mount `/data` for media content.
+Plex runs in `network_mode: host` for optimal LAN streaming and hardware transcoding via `/dev/dri`. It mounts `/data` for media content.
 
 ### Media Services — `media/services/`
 
@@ -179,6 +287,7 @@ Configure Sonarr/Radarr's qBittorrent download client with:
 | `prometheus` | `prom/prometheus` | 9090 | Metrics collection |
 | `deunhealth` | `qmcgaw/deunhealth` | — | Auto-restart unhealthy containers |
 | `portainer` | `portainer/portainer-ee:lts` | 9000 | Docker management UI |
+| `watchtower` | `containrrr/watchtower` | — | Label-scoped auto-image-updates (5 AM daily) |
 
 Prometheus Node Exporter is installed **on the host** (not in Docker) for accurate host-level metrics:
 
@@ -190,6 +299,8 @@ The Grafana dashboard is a pared-down version of [Node Exporter Full](https://gr
 
 **deunhealth** watches for containers labelled `deunhealth.restart.on.unhealthy=true` and restarts them when they go unhealthy. It runs with `network_mode: none` (only needs the Docker socket).
 
+**Watchtower** runs with `WATCHTOWER_LABEL_ENABLE=true` — only containers with `com.centurylinklabs.watchtower.enable=true` are touched. See the [Watchtower — Auto-Updates](#watchtower--auto-updates) section in Operations for the full opted-in/opted-out list.
+
 ### Dashboard — `dashboard/`
 
 | Container | Image | Port | Purpose |
@@ -197,6 +308,8 @@ The Grafana dashboard is a pared-down version of [Node Exporter Full](https://gr
 | `homepage` | `ghcr.io/gethomepage/homepage:latest` | 3001 | Service dashboard |
 
 Homepage config lives in a named volume. It mounts the Docker socket to auto-discover running containers.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -208,6 +321,8 @@ storage_pool/data    →  /data              (all media content)
 ```
 
 Named volumes store service config under `/var/lib/docker`. All media (TV, movies, music, photos, books) lives under `/data`, mounted consistently across the respective media apps/services.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -223,3 +338,5 @@ Consistent `/data` layout used across all services:
 ```
 
 Ensure all services that need to cross-reference files (e.g. Sonarr hardlinking into Plex's library) mount the same `/data` root.
+
+[⬆ Back to top](#top)

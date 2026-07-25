@@ -73,6 +73,26 @@ services:
       timeout: 10s
     restart: always
 
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    # Watchtower is intentionally NOT labeled for self-update (com.centurylinklabs.watchtower.enable)
+    # to avoid uncontrolled self-updates mid-run. Upgrade manually when needed.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 0 5 * * *
+      # Phase 5: Discord notifications via shoutrrr.
+      # Set WATCHTOWER_NOTIFICATION_URL in monitoring/.env using the discord://TOKEN@WEBHOOK_ID format.
+      # This is separate from the DISCORD_WEBHOOK_URL GitHub Secret used by the CI/CD deploy workflow.
+      # Example: WATCHTOWER_NOTIFICATION_URL=discord://token@webhookid
+      - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}
+      - WATCHTOWER_NOTIFICATION_REPORT=true
+    restart: unless-stopped
+
 volumes:
   grafana:
   prom:
