@@ -51,6 +51,7 @@ services:
     container_name: qbittorrent
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     depends_on:
       gluetun:
         condition: service_healthy

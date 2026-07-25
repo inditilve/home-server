@@ -4,6 +4,7 @@ services:
     container_name: grafana
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - 
     volumes:
       - grafana:/var/lib/grafana
     ports:
@@ -21,6 +22,7 @@ services:
     container_name: prometheus
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     extra_hosts:
@@ -56,6 +58,7 @@ services:
     container_name: portainer
     labels:
       - deunhealth.restart.on.unhealthy=true
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
