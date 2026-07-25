@@ -59,31 +59,18 @@ Deploy workflow outcomes are posted to the `#home-server` Discord channel via [s
 
 Watchtower runs in `monitoring/` and polls for updated images at **5:00 AM daily** (`0 0 5 * * *`). It uses `WATCHTOWER_LABEL_ENABLE=true`, so only containers explicitly opted-in with `com.centurylinklabs.watchtower.enable=true` are auto-updated. Old images are cleaned up automatically (`WATCHTOWER_CLEANUP=true`).
 
-**Auto-updated (label applied):**
-
-| Service | Rationale |
-|---|---|
-| `sonarr` | Frequent, safe point-releases; no persistent state risk |
-| `radarr` | Same release cadence as Sonarr |
-| `prowlarr` | Indexer-only; updates are low-risk |
-| `homepage` | UI-only dashboard; stateless config in named volume |
 
 **Manual update only (no label):**
 
 | Service | Rationale |
 |---|---|
 | `plex` | Major version changes can require DB migration; update intentionally |
-| `qbittorrent` | Settings/config sensitive; verify release notes before updating |
 | `tailscale` | Infrastructure-level — unattended update risks losing remote access |
 | `gluetun` | VPN tunnel — unattended update risks kill-switch gap |
 | `immich` | Requires coordinated DB + app upgrades; must follow official migration guide |
-| `portainer` | Management plane — only update intentionally |
 | `deunhealth` | Health watchdog — update manually to avoid restart loop during update |
-| `grafana` | Dashboard config/plugin compatibility; update intentionally |
-| `prometheus` | Storage format changes possible between versions; update intentionally |
 | `watchtower` | Not self-labeled — never auto-updates itself |
 
-> **Tip:** Before trusting Watchtower to actually update anything in production, add `WATCHTOWER_MONITOR_ONLY=true` to `monitoring/.env` temporarily. It will log what it *would* update without touching anything. Remove once you're satisfied.
 
 [⬆ Back to top](#top)
 
